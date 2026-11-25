@@ -1,0 +1,883 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI 증상 체크 - 닥터루미(Dr. Lumi) 여성 건강 문진</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Google Fonts: Pretendard & Inter -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Noto+Sans+KR:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <!-- Font Awesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['"Noto Sans KR"', 'Inter', 'sans-serif'],
+                    },
+                    colors: {
+                        rose: {
+                            50: '#fff1f2',
+                            100: '#ffe4e6',
+                            200: '#fecdd3',
+                            300: '#fda4af',
+                            400: '#fb7185',
+                            500: '#f43f5e',
+                            600: '#e11d48',
+                            700: '#be123c',
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        /* 커스텀 스크롤바 스타일 */
+        ::-webkit-scrollbar {
+            width: 6px;
+            height: 6px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #f8fafc;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #cbd5e1;
+            border-radius: 9999px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #94a3b8;
+        }
+
+        /* 말풍선 등장 애니메이션 */
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        .animate-fade-in-up {
+            animation: fadeInUp 0.3s ease-out forwards;
+        }
+
+        /* 타이핑 점 애니메이션 */
+        .typing-dot {
+            animation: typingBounce 1.4s infinite ease-in-out both;
+        }
+        .typing-dot:nth-child(1) { animation-delay: -0.32s; }
+        .typing-dot:nth-child(2) { animation-delay: -0.16s; }
+        @keyframes typingBounce {
+            0%, 80%, 100% { transform: scale(0); }
+            40% { transform: scale(1); }
+        }
+    </style>
+</head>
+<body class="bg-slate-50 text-slate-800 font-sans antialiased min-h-screen flex flex-col">
+
+    <!-- 상단 네비게이션 바 (5개 페이지 구조 반영) -->
+    <header class="bg-white border-b border-slate-200 sticky top-0 z-30 shadow-sm">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between items-center h-16">
+                <!-- 로고 -->
+                <div class="flex items-center gap-2.5 cursor-pointer" onclick="showToast('홈 페이지로 이동하는 링크입니다.')">
+                    <div class="w-9 h-9 rounded-xl bg-gradient-to-br from-rose-400 to-rose-600 flex items-center justify-center text-white shadow-sm">
+                        <i class="fa-solid fa-heart-pulse text-lg"></i>
+                    </div>
+                    <div>
+                        <span class="font-bold text-lg tracking-tight text-slate-900">닥터루미</span>
+                        <span class="hidden sm:inline-block text-xs text-rose-500 font-medium ml-1 bg-rose-50 px-2 py-0.5 rounded-full">여성건강 AI 문진</span>
+                    </div>
+                </div>
+
+                <!-- 데스크톱 5개 메뉴 네비게이션 -->
+                <nav class="hidden lg:flex items-center space-x-1">
+                    <a href="#" onclick="navAlert(event, '1. 홈')" class="px-3.5 py-2 rounded-lg text-sm font-medium text-slate-600 hover:text-rose-600 hover:bg-rose-50/60 transition">
+                        1. 홈
+                    </a>
+                    <a href="#" class="px-3.5 py-2 rounded-lg text-sm font-bold text-rose-600 bg-rose-50 border border-rose-200/70 transition flex items-center gap-1.5">
+                        <span class="w-2 h-2 rounded-full bg-rose-500 animate-pulse"></span>
+                        2. AI 증상 체크
+                    </a>
+                    <a href="#" onclick="navAlert(event, '3. 자가진단 및 응급 신호')" class="px-3.5 py-2 rounded-lg text-sm font-medium text-slate-600 hover:text-rose-600 hover:bg-rose-50/60 transition">
+                        3. 자가진단 및 응급 신호
+                    </a>
+                    <a href="#" onclick="navAlert(event, '4. 질환 백과 및 건강 칼럼')" class="px-3.5 py-2 rounded-lg text-sm font-medium text-slate-600 hover:text-rose-600 hover:bg-rose-50/60 transition">
+                        4. 질환 백과 및 건강 칼럼
+                    </a>
+                    <a href="#" onclick="navAlert(event, '5. 병원 방문 가이드 및 안내')" class="px-3.5 py-2 rounded-lg text-sm font-medium text-slate-600 hover:text-rose-600 hover:bg-rose-50/60 transition">
+                        5. 병원 방문 가이드
+                    </a>
+                </nav>
+
+                <!-- 모바일 메뉴 토글 버튼 -->
+                <div class="lg:hidden flex items-center">
+                    <button id="mobile-menu-btn" class="p-2 rounded-lg text-slate-600 hover:bg-slate-100 focus:outline-none">
+                        <i class="fa-solid fa-bars text-xl"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- 모바일 드롭다운 메뉴 -->
+        <div id="mobile-menu" class="hidden lg:hidden bg-white border-t border-slate-100 px-4 pt-2 pb-4 space-y-1 shadow-lg">
+            <a href="#" onclick="navAlert(event, '1. 홈')" class="block px-3 py-2.5 rounded-lg text-sm font-medium text-slate-600 hover:bg-slate-50">1. 홈</a>
+            <a href="#" class="block px-3 py-2.5 rounded-lg text-sm font-bold text-rose-600 bg-rose-50">2. AI 증상 체크 (현재 페이지)</a>
+            <a href="#" onclick="navAlert(event, '3. 자가진단 및 응급 신호')" class="block px-3 py-2.5 rounded-lg text-sm font-medium text-slate-600 hover:bg-slate-50">3. 자가진단 및 응급 신호</a>
+            <a href="#" onclick="navAlert(event, '4. 질환 백과 및 건강 칼럼')" class="block px-3 py-2.5 rounded-lg text-sm font-medium text-slate-600 hover:bg-slate-50">4. 질환 백과 및 건강 칼럼</a>
+            <a href="#" onclick="navAlert(event, '5. 병원 방문 가이드 및 안내')" class="block px-3 py-2.5 rounded-lg text-sm font-medium text-slate-600 hover:bg-slate-50">5. 병원 방문 가이드 및 안내</a>
+        </div>
+    </header>
+
+    <!-- 페이지 타이틀 & 서브 안내 배너 -->
+    <div class="bg-gradient-to-r from-rose-50 via-white to-rose-50/50 border-b border-rose-100/80">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-5">
+            <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+                <div>
+                    <div class="flex items-center gap-2 text-xs font-semibold text-rose-600 mb-1">
+                        <span>MENU 02</span>
+                        <span>•</span>
+                        <span>AI INTERACTIVE SYMPTOM CHECKER</span>
+                    </div>
+                    <h1 class="text-xl sm:text-2xl font-bold text-slate-900">AI 생리 증상 체크 및 내원 권고 상담</h1>
+                    <p class="text-sm text-slate-600 mt-1">대화형 문진을 통해 현재 증상을 점검하고, 산부인과 진료 시 활용할 수 있는 요약 리포트를 받아보세요.</p>
+                </div>
+                <button onclick="resetChat()" class="self-start sm:self-center inline-flex items-center gap-2 px-4 py-2 bg-white border border-slate-200 hover:border-rose-300 hover:bg-rose-50 text-slate-700 hover:text-rose-600 text-sm font-medium rounded-xl shadow-sm transition">
+                    <i class="fa-solid fa-rotate-right"></i>
+                    <span>처음부터 다시하기</span>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 메인 컨텐츠: 2단 분할 레이아웃 (좌측 65% 챗봇 / 우측 35% 실시간 문진 & 결과 리포트) -->
+    <main class="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-6">
+        <div class="flex flex-col lg:flex-row gap-6 items-start">
+            
+            <!-- 좌측 패널 (65%): 챗봇 인터페이스 -->
+            <section class="w-full lg:w-[65%] bg-white rounded-2xl border border-slate-200/90 shadow-sm flex flex-col h-[680px] sm:h-[720px] overflow-hidden">
+                
+                <!-- 상단 진행률 표시바 (Progress Bar) -->
+                <div class="px-5 py-4 bg-slate-50/80 border-b border-slate-100">
+                    <div class="flex justify-between items-center mb-2">
+                        <span class="text-xs font-semibold text-slate-500">문진 진행 단계</span>
+                        <span id="step-indicator-text" class="text-xs font-bold text-rose-600 bg-rose-100/70 px-2.5 py-0.5 rounded-full">1 / 4 단계: 주기 변화</span>
+                    </div>
+                    <!-- 5단계 스텝 바 -->
+                    <div class="grid grid-cols-5 gap-1.5">
+                        <div id="prog-1" class="h-2 rounded-full bg-rose-500 transition-all duration-300"></div>
+                        <div id="prog-2" class="h-2 rounded-full bg-slate-200 transition-all duration-300"></div>
+                        <div id="prog-3" class="h-2 rounded-full bg-slate-200 transition-all duration-300"></div>
+                        <div id="prog-4" class="h-2 rounded-full bg-slate-200 transition-all duration-300"></div>
+                        <div id="prog-5" class="h-2 rounded-full bg-slate-200 transition-all duration-300"></div>
+                    </div>
+                    <div class="grid grid-cols-5 gap-1 text-[11px] text-center mt-1.5 font-medium text-slate-400">
+                        <span id="label-1" class="text-rose-600 font-semibold">1.주기변화</span>
+                        <span id="label-2">2.통증강도</span>
+                        <span id="label-3">3.출혈량</span>
+                        <span id="label-4">4.동반증상</span>
+                        <span id="label-5">5.결과분석</span>
+                    </div>
+                </div>
+
+                <!-- 채팅 메시지 영역 -->
+                <div id="chat-messages" class="flex-1 p-5 overflow-y-auto space-y-4 bg-gradient-to-b from-white to-slate-50/40">
+                    <!-- 자바스크립트로 대화 말풍선이 동적으로 추가됩니다 -->
+                </div>
+
+                <!-- 빠른 답변 버튼 (Quick Reply Chips) 영역 -->
+                <div id="quick-replies-container" class="px-5 py-3 bg-rose-50/40 border-t border-rose-100/60">
+                    <div class="text-xs font-medium text-slate-500 mb-2 flex items-center gap-1.5">
+                        <i class="fa-regular fa-hand-pointer text-rose-500"></i>
+                        <span>빠른 선택 (버튼을 누르거나 아래에 직접 입력해 주세요)</span>
+                    </div>
+                    <div id="quick-replies" class="flex flex-wrap gap-2">
+                        <!-- 선택 칩 버튼이 동적으로 렌더링됩니다 -->
+                    </div>
+                </div>
+
+                <!-- 하단 텍스트 입력창 -->
+                <form id="chat-form" class="p-3.5 bg-white border-t border-slate-200 flex items-center gap-2.5">
+                    <input 
+                        type="text" 
+                        id="user-input" 
+                        placeholder="증상을 직접 입력해 주세요 (예: 진통제를 먹어도 배가 너무 아파요)..." 
+                        autocomplete="off"
+                        class="flex-1 px-4 py-3 bg-slate-100/80 border border-transparent focus:border-rose-400 focus:bg-white rounded-xl text-sm text-slate-800 placeholder-slate-400 focus:outline-none transition"
+                    >
+                    <button 
+                        type="submit" 
+                        class="px-5 py-3 bg-rose-500 hover:bg-rose-600 active:bg-rose-700 text-white font-semibold text-sm rounded-xl shadow-sm transition flex items-center gap-2 shrink-0"
+                    >
+                        <span>전송</span>
+                        <i class="fa-solid fa-paper-plane text-xs"></i>
+                    </button>
+                </form>
+            </section>
+
+            <!-- 우측 패널 (35%): 실시간 문진 기록 & 결과 리포트 요약 -->
+            <aside class="w-full lg:w-[35%] space-y-5">
+                
+                <!-- 1. 실시간 문진 요약 카드 -->
+                <div class="bg-white rounded-2xl border border-slate-200/90 shadow-sm p-5">
+                    <div class="flex items-center justify-between mb-4 pb-3 border-b border-slate-100">
+                        <div class="flex items-center gap-2">
+                            <div class="w-7 h-7 rounded-lg bg-rose-100 text-rose-600 flex items-center justify-center text-sm">
+                                <i class="fa-solid fa-clipboard-list"></i>
+                            </div>
+                            <h2 class="font-bold text-slate-800 text-base">실시간 문진 기록</h2>
+                        </div>
+                        <span id="live-status-badge" class="text-xs font-medium px-2.5 py-1 rounded-full bg-slate-100 text-slate-600">
+                            문진 진행중
+                        </span>
+                    </div>
+
+                    <div class="space-y-3 text-sm">
+                        <!-- 항목 1: 주기 변화 -->
+                        <div class="p-3 rounded-xl bg-slate-50 border border-slate-100 flex justify-between items-start gap-2">
+                            <span class="text-slate-500 font-medium shrink-0">① 주기 변화</span>
+                            <span id="summary-cycle" class="font-semibold text-slate-400 text-right">대기 중...</span>
+                        </div>
+                        <!-- 항목 2: 생리통 강도 -->
+                        <div class="p-3 rounded-xl bg-slate-50 border border-slate-100 flex justify-between items-start gap-2">
+                            <span class="text-slate-500 font-medium shrink-0">② 통증 강도</span>
+                            <span id="summary-pain" class="font-semibold text-slate-400 text-right">대기 중...</span>
+                        </div>
+                        <!-- 항목 3: 출혈량 -->
+                        <div class="p-3 rounded-xl bg-slate-50 border border-slate-100 flex justify-between items-start gap-2">
+                            <span class="text-slate-500 font-medium shrink-0">③ 출혈 양상</span>
+                            <span id="summary-bleeding" class="font-semibold text-slate-400 text-right">대기 중...</span>
+                        </div>
+                        <!-- 항목 4: 동반 증상 -->
+                        <div class="p-3 rounded-xl bg-slate-50 border border-slate-100 flex justify-between items-start gap-2">
+                            <span class="text-slate-500 font-medium shrink-0">④ 동반 증상</span>
+                            <span id="summary-other" class="font-semibold text-slate-400 text-right">대기 중...</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 2. 최종 결과 리포트 요약 카드 (상담 완료 시 활성화) -->
+                <div id="result-report-card" class="bg-white rounded-2xl border border-slate-200/90 shadow-sm p-5 transition-all duration-300">
+                    <div class="flex items-center gap-2 mb-3">
+                        <div class="w-7 h-7 rounded-lg bg-indigo-50 text-indigo-600 flex items-center justify-center text-sm">
+                            <i class="fa-solid fa-file-medical"></i>
+                        </div>
+                        <h2 class="font-bold text-slate-800 text-base">결과 리포트 요약</h2>
+                    </div>
+
+                    <!-- 상담 완료 전 안내 플레이스홀더 -->
+                    <div id="report-placeholder" class="py-8 px-4 text-center bg-slate-50/80 rounded-xl border border-dashed border-slate-200">
+                        <div class="w-12 h-12 rounded-full bg-white shadow-sm flex items-center justify-center mx-auto mb-3 text-rose-400">
+                            <i class="fa-solid fa-stethoscope text-xl"></i>
+                        </div>
+                        <p class="text-sm font-semibold text-slate-700">4가지 문진을 완료하면 리포트가 생성됩니다</p>
+                        <p class="text-xs text-slate-500 mt-1 leading-relaxed">
+                            내원 필요도 판별 결과와 함께<br>병원 진료 시 의사에게 바로 보여줄 수 있는<br>증상 요약본을 만들어 드립니다.
+                        </p>
+                    </div>
+
+                    <!-- 상담 완료 후 표시되는 실제 리포트 영역 -->
+                    <div id="report-content" class="hidden space-y-4 animate-fade-in-up">
+                        <!-- 내원 권고 등급 배지 -->
+                        <div id="recommendation-box" class="p-4 rounded-xl border">
+                            <div class="flex items-center gap-2 mb-1.5">
+                                <span id="rec-dot" class="w-3 h-3 rounded-full"></span>
+                                <span id="rec-title" class="font-bold text-base"></span>
+                            </div>
+                            <p id="rec-desc" class="text-xs leading-relaxed"></p>
+                        </div>
+
+                        <!-- 의사 전달용 증상 요약본 박스 -->
+                        <div>
+                            <div class="flex items-center justify-between mb-1.5">
+                                <span class="text-xs font-bold text-slate-700 flex items-center gap-1.5">
+                                    <i class="fa-solid fa-user-doctor text-rose-500"></i>
+                                    의사 전달용 증상 요약본
+                                </span>
+                                <span class="text-[11px] text-slate-400">진료 시 의료진에게 보여주세요</span>
+                            </div>
+                            <div id="doctor-summary-text" class="p-3.5 bg-slate-800 text-slate-100 rounded-xl text-xs font-mono leading-relaxed whitespace-pre-line select-all shadow-inner"></div>
+                        </div>
+
+                        <!-- 원클릭 액션 버튼 (복사하기 / 이미지 저장하기) -->
+                        <div class="grid grid-cols-2 gap-2.5 pt-1">
+                            <button onclick="copySummaryText()" class="py-2.5 px-3 bg-rose-500 hover:bg-rose-600 text-white text-xs font-semibold rounded-xl shadow-sm transition flex items-center justify-center gap-1.5">
+                                <i class="fa-regular fa-copy"></i>
+                                <span>요약본 복사하기</span>
+                            </button>
+                            <button onclick="downloadReportImage()" class="py-2.5 px-3 bg-slate-800 hover:bg-slate-900 text-white text-xs font-semibold rounded-xl shadow-sm transition flex items-center justify-center gap-1.5">
+                                <i class="fa-solid fa-download"></i>
+                                <span>이미지로 저장하기</span>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 의료적 면책 조항 -->
+                <div class="p-4 rounded-xl bg-slate-100/80 border border-slate-200/70 text-xs text-slate-500 leading-relaxed flex gap-2.5">
+                    <i class="fa-solid fa-circle-info text-slate-400 mt-0.5 shrink-0"></i>
+                    <p>
+                        <strong>의료적 면책 안내:</strong> 본 AI 챗봇의 분석 결과는 의학적 진단을 대신할 수 없으며, 산부인과 방문 여부 결정을 돕기 위한 참고용 정보입니다. 증상이 심하거나 응급 상황이라 판단되면 즉시 의료기관을 방문하세요.
+                    </p>
+                </div>
+
+            </aside>
+        </div>
+    </main>
+
+    <!-- 토스트 알림 메시지 -->
+    <div id="toast" class="fixed bottom-6 left-1/2 -translate-x-1/2 bg-slate-900 text-white text-sm font-medium px-5 py-3 rounded-full shadow-lg opacity-0 pointer-events-none transition-all duration-300 z-50 flex items-center gap-2">
+        <i class="fa-solid fa-circle-check text-rose-400"></i>
+        <span id="toast-message">알림 메시지</span>
+    </div>
+
+    <!-- 이미지 저장용 숨겨진 Canvas -->
+    <canvas id="report-canvas" class="hidden" width="800" height="620"></canvas>
+
+    <script>
+        // 문진 단계별 질문 및 빠른 답변 데이터
+        const surveySteps = [
+            {
+                key: 'cycle',
+                stepTitle: '1 / 4 단계: 주기 변화',
+                question: '안녕하세요! 여성 건강 AI 문진 도우미 닥터루미입니다. 😊\n먼저, **최근 생리 주기에 변화**가 있었나요?',
+                quickReplies: [
+                    '규칙적인 편이에요 (21~35일 주기)',
+                    '예정일보다 1주 이상 늦어졌어요',
+                    '생리 기간이 아닌데 부정출혈이 있어요',
+                    '3개월 이상 생리가 없어요 (무월경)'
+                ]
+            },
+            {
+                key: 'pain',
+                stepTitle: '2 / 4 단계: 생리통 강도',
+                question: '답변 감사합니다. 다음으로 **생리통의 강도**는 어느 정도인가요?\n(진통제 복용 여부나 일상생활 지장 정도를 알려주세요.)',
+                quickReplies: [
+                    '1~3점: 통증이 거의 없거나 참을 만해요',
+                    '4~6점: 진통제를 먹으면 일상생활이 가능해요',
+                    '7~10점: 진통제가 잘 안 듣고 일상생활이 어려워요'
+                ]
+            },
+            {
+                key: 'bleeding',
+                stepTitle: '3 / 4 단계: 출혈량',
+                question: '생리 중 **출혈량**은 평소와 비교했을 때 어떤가요?',
+                quickReplies: [
+                    '보통이에요 (3~4시간마다 패드 교체)',
+                    '평소보다 조금 많은 편이에요',
+                    '1~2시간마다 대형 패드를 적실 정도로 많아요',
+                    '엄지손톱보다 큰 덩어리혈이 자주 나와요'
+                ]
+            },
+            {
+                key: 'other',
+                stepTitle: '4 / 4 단계: 동반 증상',
+                question: '마지막 질문입니다. 생리 전후로 **함께 나타나는 동반 증상**이 있나요?',
+                quickReplies: [
+                    '특별한 동반 증상은 없어요',
+                    '어지러움, 숨참 등 빈혈 기운이 있어요',
+                    '38도 이상의 발열이나 오한이 있어요',
+                    '심한 메스꺼움, 구토 또는 골반 통증이 있어요'
+                ]
+            }
+        ];
+
+        // 애플리케이션 상태 저장
+        let currentStep = 0;
+        let answers = {
+            cycle: '',
+            pain: '',
+            bleeding: '',
+            other: ''
+        };
+        let finalReportData = null;
+
+        // DOM 요소 참조
+        const chatMessages = document.getElementById('chat-messages');
+        const quickRepliesContainer = document.getElementById('quick-replies');
+        const quickRepliesWrapper = document.getElementById('quick-replies-container');
+        const chatForm = document.getElementById('chat-form');
+        const userInput = document.getElementById('user-input');
+        const stepIndicatorText = document.getElementById('step-indicator-text');
+
+        // 초기화 실행
+        window.addEventListener('DOMContentLoaded', () => {
+            initChat();
+            
+            // 모바일 메뉴 토글
+            document.getElementById('mobile-menu-btn').addEventListener('click', () => {
+                const menu = document.getElementById('mobile-menu');
+                menu.classList.toggle('hidden');
+            });
+        });
+
+        // 채팅 시작 함수
+        function initChat() {
+            currentStep = 0;
+            answers = { cycle: '', pain: '', bleeding: '', other: '' };
+            finalReportData = null;
+            chatMessages.innerHTML = '';
+            
+            // 우측 패널 초기화
+            document.getElementById('summary-cycle').textContent = '대기 중...';
+            document.getElementById('summary-cycle').className = 'font-semibold text-slate-400 text-right';
+            document.getElementById('summary-pain').textContent = '대기 중...';
+            document.getElementById('summary-pain').className = 'font-semibold text-slate-400 text-right';
+            document.getElementById('summary-bleeding').textContent = '대기 중...';
+            document.getElementById('summary-bleeding').className = 'font-semibold text-slate-400 text-right';
+            document.getElementById('summary-other').textContent = '대기 중...';
+            document.getElementById('summary-other').className = 'font-semibold text-slate-400 text-right';
+            
+            document.getElementById('live-status-badge').textContent = '문진 진행중';
+            document.getElementById('live-status-badge').className = 'text-xs font-medium px-2.5 py-1 rounded-full bg-rose-50 text-rose-600';
+
+            document.getElementById('report-placeholder').classList.remove('hidden');
+            document.getElementById('report-content').classList.add('hidden');
+            quickRepliesWrapper.classList.remove('hidden');
+
+            updateProgressBar(1);
+            askStepQuestion(0);
+        }
+
+        // 리셋 버튼 핸들러
+        function resetChat() {
+            initChat();
+            showToast('문진이 초기화되었습니다. 처음부터 다시 시작합니다.');
+        }
+
+        // 진행률 바 업데이트
+        function updateProgressBar(stepNum) {
+            for (let i = 1; i <= 5; i++) {
+                const bar = document.getElementById(`prog-${i}`);
+                const label = document.getElementById(`label-${i}`);
+                if (i <= stepNum) {
+                    bar.classList.remove('bg-slate-200');
+                    bar.classList.add('bg-rose-500');
+                    label.classList.remove('text-slate-400');
+                    label.classList.add('text-rose-600', 'font-semibold');
+                } else {
+                    bar.classList.remove('bg-rose-500');
+                    bar.classList.add('bg-slate-200');
+                    label.classList.remove('text-rose-600', 'font-semibold');
+                    label.classList.add('text-slate-400');
+                }
+            }
+
+            if (stepNum <= 4) {
+                stepIndicatorText.textContent = surveySteps[stepNum - 1].stepTitle;
+            } else {
+                stepIndicatorText.textContent = '문진 완료 • 결과 리포트 생성됨';
+            }
+        }
+
+        // 봇 질문 출력
+        function askStepQuestion(stepIndex) {
+            const stepData = surveySteps[stepIndex];
+            showTypingIndicator();
+
+            setTimeout(() => {
+                removeTypingIndicator();
+                appendBotMessage(stepData.question);
+                renderQuickReplies(stepData.quickReplies);
+            }, 450);
+        }
+
+        // 봇 말풍선 추가
+        function appendBotMessage(text) {
+            const formattedText = text
+                .replace(/\*\*(.*?)\*\*/g, '<strong class="font-bold text-slate-900">$1</strong>')
+                .replace(/\n/g, '<br>');
+
+            const msgDiv = document.createElement('div');
+            msgDiv.className = 'flex items-start gap-3 animate-fade-in-up';
+            msgDiv.innerHTML = `
+                <div class="w-9 h-9 rounded-full bg-rose-100 border border-rose-200 flex items-center justify-center text-rose-600 shrink-0 mt-0.5">
+                    <i class="fa-solid fa-user-nurse text-sm"></i>
+                </div>
+                <div class="bg-white border border-slate-200/90 text-slate-700 rounded-2xl rounded-tl-none px-4 py-3 text-sm leading-relaxed shadow-sm max-w-[85%]">
+                    ${formattedText}
+                </div>
+            `;
+            chatMessages.appendChild(msgDiv);
+            scrollToBottom();
+        }
+
+        // 사용자 말풍선 추가
+        function appendUserMessage(text) {
+            const msgDiv = document.createElement('div');
+            msgDiv.className = 'flex items-end justify-end gap-2 animate-fade-in-up';
+            msgDiv.innerHTML = `
+                <div class="bg-rose-500 text-white rounded-2xl rounded-tr-none px-4 py-3 text-sm leading-relaxed shadow-sm max-w-[82%]">
+                    ${escapeHtml(text)}
+                </div>
+            `;
+            chatMessages.appendChild(msgDiv);
+            scrollToBottom();
+        }
+
+        // 타이핑 인디케이터 표시/제거
+        function showTypingIndicator() {
+            const typingDiv = document.createElement('div');
+            typingDiv.id = 'typing-indicator';
+            typingDiv.className = 'flex items-center gap-3';
+            typingDiv.innerHTML = `
+                <div class="w-9 h-9 rounded-full bg-rose-100 border border-rose-200 flex items-center justify-center text-rose-600 shrink-0">
+                    <i class="fa-solid fa-user-nurse text-sm"></i>
+                </div>
+                <div class="bg-white border border-slate-200 rounded-2xl rounded-tl-none px-4 py-3 shadow-sm flex items-center gap-1.5">
+                    <span class="w-2 h-2 bg-rose-400 rounded-full typing-dot"></span>
+                    <span class="w-2 h-2 bg-rose-400 rounded-full typing-dot"></span>
+                    <span class="w-2 h-2 bg-rose-400 rounded-full typing-dot"></span>
+                </div>
+            `;
+            chatMessages.appendChild(typingDiv);
+            scrollToBottom();
+        }
+
+        function removeTypingIndicator() {
+            const el = document.getElementById('typing-indicator');
+            if (el) el.remove();
+        }
+
+        // 빠른 답변 칩 렌더링
+        function renderQuickReplies(options) {
+            quickRepliesContainer.innerHTML = '';
+            options.forEach(option => {
+                const btn = document.createElement('button');
+                btn.type = 'button';
+                btn.className = 'text-xs sm:text-sm bg-white hover:bg-rose-500 text-slate-700 hover:text-white border border-rose-200 hover:border-rose-500 px-3.5 py-2 rounded-full font-medium transition shadow-xs cursor-pointer text-left';
+                btn.textContent = option;
+                btn.onclick = () => handleUserResponse(option);
+                quickRepliesContainer.appendChild(btn);
+            });
+        }
+
+        // 텍스트 폼 제출 핸들러
+        chatForm.addEventListener('submit', (e) => {
+            e.preventDefault();
+            const text = userInput.value.trim();
+            if (!text) return;
+            userInput.value = '';
+            handleUserResponse(text);
+        });
+
+        // 사용자 응답 처리 및 다음 단계 진행
+        function handleUserResponse(responseText) {
+            appendUserMessage(responseText);
+
+            if (currentStep < surveySteps.length) {
+                const currentKey = surveySteps[currentStep].key;
+                answers[currentKey] = responseText;
+                updateLiveSummaryCard(currentKey, responseText);
+
+                currentStep++;
+
+                if (currentStep < surveySteps.length) {
+                    updateProgressBar(currentStep + 1);
+                    askStepQuestion(currentStep);
+                } else {
+                    // 모든 4단계 완료 -> 결과 분석 실행
+                    updateProgressBar(5);
+                    quickRepliesWrapper.classList.add('hidden');
+                    generateFinalAnalysis();
+                }
+            } else {
+                // 이미 분석이 끝난 후 추가 입력 시 안내
+                showTypingIndicator();
+                setTimeout(() => {
+                    removeTypingIndicator();
+                    appendBotMessage('이미 기본 문진 및 리포트 생성이 완료되었습니다. 우측의 **결과 리포트 요약**을 확인해 주세요! 새로운 증상으로 다시 상담하시려면 상단의 **[처음부터 다시하기]** 버튼을 눌러주세요.');
+                }, 400);
+            }
+        }
+
+        // 우측 실시간 문진 기록 카드 업데이트
+        function updateLiveSummaryCard(key, value) {
+            const targetEl = document.getElementById(`summary-${key}`);
+            if (targetEl) {
+                targetEl.textContent = value;
+                targetEl.className = 'font-semibold text-slate-800 text-right';
+            }
+        }
+
+        // 최종 증상 평가 및 리포트 생성 로직
+        function generateFinalAnalysis() {
+            showTypingIndicator();
+
+            setTimeout(() => {
+                removeTypingIndicator();
+
+                // 키워드 기반 위험도 평가 알고리즘
+                const combined = `${answers.cycle} ${answers.pain} ${answers.bleeding} ${answers.other}`;
+                
+                let level = 'GREEN'; // 'RED' | 'YELLOW' | 'GREEN'
+                let redReasons = [];
+                let yellowReasons = [];
+
+                // Red Flag (즉시 내원 필요) 조건 검사
+                if (combined.includes('7~10') || combined.includes('진통제가 잘 안 듣고') || combined.includes('불가') || combined.includes('너무 아파')) {
+                    redReasons.push('진통제로 조절되지 않는 심한 생리통(NRS 7점 이상)');
+                }
+                if (combined.includes('1~2시간') || combined.includes('덩어리혈') || combined.includes('쏟아')) {
+                    redReasons.push('월경과다 의심 소견(빈번한 패드 교체 또는 큰 혈괴)');
+                }
+                if (combined.includes('부정출혈') || combined.includes('3개월 이상') || combined.includes('무월경')) {
+                    redReasons.push('비정상 자궁출혈(부정출혈) 또는 3개월 이상의 무월경');
+                }
+                if (combined.includes('어지러움') || combined.includes('빈혈') || combined.includes('발열') || combined.includes('오한') || combined.includes('구토')) {
+                    redReasons.push('전신 동반 증상(빈혈 증세, 발열/오한, 심한 구토 등)');
+                }
+
+                // Yellow Flag (경과 관찰 및 진료 권장) 조건 검사
+                if (combined.includes('4~6') || combined.includes('진통제를 먹으면')) {
+                    yellowReasons.push('진통제 복용이 필요한 중등도 생리통');
+                }
+                if (combined.includes('1주 이상 늦어') || combined.includes('조금 많은')) {
+                    yellowReasons.push('일시적 주기 지연 또는 출혈량 증가');
+                }
+
+                if (redReasons.length > 0) {
+                    level = 'RED';
+                } else if (yellowReasons.length > 0) {
+                    level = 'YELLOW';
+                } else {
+                    level = 'GREEN';
+                }
+
+                // 등급별 메시지 및 스타일 설정
+                const recBox = document.getElementById('recommendation-box');
+                const recDot = document.getElementById('rec-dot');
+                const recTitle = document.getElementById('rec-title');
+                const recDesc = document.getElementById('rec-desc');
+                let gradeLabel = '';
+
+                if (level === 'RED') {
+                    gradeLabel = '🔴 즉시 내원 필요 (산부인과 진료 강력 권고)';
+                    recBox.className = 'p-4 rounded-xl border border-red-200 bg-red-50 text-red-900';
+                    recDot.className = 'w-3 h-3 rounded-full bg-red-600 animate-ping';
+                    recTitle.textContent = '즉시 내원 필요';
+                    recTitle.className = 'font-bold text-base text-red-700';
+                    recDesc.textContent = `감지된 주요 소견(${redReasons.join(', ')})은 자궁내막증, 자궁근종, 골반염 또는 급성 빈혈 등의 신호일 수 있습니다. 빠른 시일 내에 산부인과 전문의 진료를 받으시길 권장합니다.`;
+                } else if (level === 'YELLOW') {
+                    gradeLabel = '🟡 경과 관찰 및 진료 권장';
+                    recBox.className = 'p-4 rounded-xl border border-amber-200 bg-amber-50 text-amber-900';
+                    recDot.className = 'w-3 h-3 rounded-full bg-amber-500';
+                    recTitle.textContent = '경과 관찰 및 진료 권장';
+                    recTitle.className = 'font-bold text-base text-amber-800';
+                    recDesc.textContent = `현재 스트레스나 피로로 인한 일시적 변화일 수 있으나(${yellowReasons.join(', ')}), 다음 주기에도 동일 증상이 반복되거나 통증이 심해지면 산부인과 상담을 받아보세요.`;
+                } else {
+                    gradeLabel = '🟢 정상 범위 / 생활 습관 관리';
+                    recBox.className = 'p-4 rounded-xl border border-emerald-200 bg-emerald-50 text-emerald-900';
+                    recDot.className = 'w-3 h-3 rounded-full bg-emerald-500';
+                    recTitle.textContent = '정상 범위 및 생활 관리';
+                    recTitle.className = 'font-bold text-base text-emerald-800';
+                    recDesc.textContent = '현재 응답해 주신 내용상 즉각적인 병원 방문이 필요한 응급 위험 신호는 보이지 않습니다. 하복부 온찜질, 충분한 수면과 균형 잡힌 식단으로 컨디션을 관리해 주세요.';
+                }
+
+                // 오늘 날짜 포맷
+                const today = new Date();
+                const dateStr = `${today.getFullYear()}.${String(today.getMonth() + 1).padStart(2, '0')}.${String(today.getDate()).padStart(2, '0')}`;
+
+                // 의사 전달용 요약 텍스트 구성
+                const summaryFormatted = 
+`[생리 증상 문진 요약 - ${dateStr}]
+• 권고 등급: ${gradeLabel}
+• 주기 양상: ${answers.cycle}
+• 통증 강도: ${answers.pain}
+• 출혈 양상: ${answers.bleeding}
+• 동반 증상: ${answers.other}
+• 특이 소견: ${redReasons.length > 0 ? redReasons.join(' / ') : (yellowReasons.length > 0 ? yellowReasons.join(' / ') : '특이 위험 신호 없음')}`;
+
+                finalReportData = {
+                    dateStr,
+                    level,
+                    gradeLabel,
+                    cycle: answers.cycle,
+                    pain: answers.pain,
+                    bleeding: answers.bleeding,
+                    other: answers.other,
+                    notes: redReasons.length > 0 ? redReasons.join(', ') : (yellowReasons.length > 0 ? yellowReasons.join(', ') : '특이 위험 신호 없음'),
+                    summaryFormatted
+                };
+
+                // 우측 리포트 UI 업데이트
+                document.getElementById('doctor-summary-text').textContent = summaryFormatted;
+                document.getElementById('report-placeholder').classList.add('hidden');
+                document.getElementById('report-content').classList.remove('hidden');
+                
+                document.getElementById('live-status-badge').textContent = '분석 완료';
+                document.getElementById('live-status-badge').className = 'text-xs font-bold px-2.5 py-1 rounded-full bg-emerald-100 text-emerald-700';
+
+                // 챗봇 마무리 안내 메시지
+                appendBotMessage(`모든 문진이 완료되었습니다! 분석 결과는 **[${recTitle.textContent}]** 단계입니다.\n\n우측(모바일은 하단)의 **결과 리포트 요약**에서 의사 선생님께 바로 보여드릴 수 있는 문진 요약본을 복사하거나 이미지로 저장하실 수 있습니다.`);
+            }, 650);
+        }
+
+        // 요약본 클립보드 복사 기능 (document.execCommand 사용으로 iframe 환경 완벽 호환)
+        function copySummaryText() {
+            if (!finalReportData) return;
+            const textarea = document.createElement('textarea');
+            textarea.value = finalReportData.summaryFormatted;
+            textarea.style.position = 'fixed';
+            textarea.style.opacity = '0';
+            document.body.appendChild(textarea);
+            textarea.select();
+            try {
+                document.execCommand('copy');
+                showToast('의사 전달용 증상 요약본이 클립보드에 복사되었습니다!');
+            } catch (err) {
+                showToast('복사에 실패했습니다. 텍스트를 직접 선택해 복사해 주세요.');
+            }
+            document.body.removeChild(textarea);
+        }
+
+        // 리포트 카드 이미지(PNG) 생성 및 다운로드 기능
+        function downloadReportImage() {
+            if (!finalReportData) return;
+            const canvas = document.getElementById('report-canvas');
+            const ctx = canvas.getContext('2d');
+
+            // 배경 그리기
+            ctx.fillStyle = '#fff1f2';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+            // 메인 흰색 카드 영역
+            ctx.fillStyle = '#ffffff';
+            roundRect(ctx, 40, 40, 720, 540, 24, true, false);
+
+            // 상단 헤더 바
+            ctx.fillStyle = '#f43f5e';
+            ctx.font = 'bold 16px "Noto Sans KR", sans-serif';
+            ctx.fillText('닥터루미 AI 여성건강 문진 리포트', 75, 90);
+
+            ctx.fillStyle = '#64748b';
+            ctx.font = '14px "Noto Sans KR", sans-serif';
+            ctx.fillText(`작성일: ${finalReportData.dateStr}`, 615, 90);
+
+            // 구분선
+            ctx.strokeStyle = '#e2e8f0';
+            ctx.lineWidth = 1;
+            ctx.beginPath();
+            ctx.moveTo(75, 110);
+            ctx.lineTo(725, 110);
+            ctx.stroke();
+
+            // 권고 등급 배지 박스
+            let badgeBg = '#ecfdf5';
+            let badgeText = '#047857';
+            if (finalReportData.level === 'RED') {
+                badgeBg = '#fef2f2';
+                badgeText = '#b91c1c';
+            } else if (finalReportData.level === 'YELLOW') {
+                badgeBg = '#fffbeb';
+                badgeText = '#b45309';
+            }
+            ctx.fillStyle = badgeBg;
+            roundRect(ctx, 75, 130, 650, 54, 12, true, false);
+
+            ctx.fillStyle = badgeText;
+            ctx.font = 'bold 20px "Noto Sans KR", sans-serif';
+            ctx.fillText(`판별 결과: ${finalReportData.gradeLabel}`, 95, 164);
+
+            // 문진 상세 항목 출력
+            const items = [
+                { label: '1. 주기 양상', value: finalReportData.cycle },
+                { label: '2. 통증 강도', value: finalReportData.pain },
+                { label: '3. 출혈 양상', value: finalReportData.bleeding },
+                { label: '4. 동반 증상', value: finalReportData.other },
+                { label: '5. 주요 소견', value: finalReportData.notes }
+            ];
+
+            let startY = 225;
+            items.forEach(item => {
+                ctx.fillStyle = '#64748b';
+                ctx.font = 'bold 15px "Noto Sans KR", sans-serif';
+                ctx.fillText(item.label, 80, startY);
+
+                ctx.fillStyle = '#1e293b';
+                ctx.font = '15px "Noto Sans KR", sans-serif';
+                const truncatedVal = item.value.length > 36 ? item.value.substring(0, 36) + '...' : item.value;
+                ctx.fillText(truncatedVal, 210, startY);
+
+                startY += 54;
+            });
+
+            // 하단 안내 문구
+            ctx.fillStyle = '#94a3b8';
+            ctx.font = '12px "Noto Sans KR", sans-serif';
+            ctx.fillText('* 본 요약본은 산부인과 진료 시 의료진에게 증상을 설명하기 위한 참고용 자료입니다.', 75, 545);
+
+            // 이미지 다운로드 트리거
+            const link = document.createElement('a');
+            link.download = `생리증상_문진리포트_${finalReportData.dateStr}.png`;
+            link.href = canvas.toDataURL('image/png');
+            link.click();
+
+            showToast('문진 리포트 카드 이미지가 저장되었습니다!');
+        }
+
+        // Canvas 둥근 사각형 헬퍼 함수
+        function roundRect(ctx, x, y, width, height, radius, fill, stroke) {
+            ctx.beginPath();
+            ctx.moveTo(x + radius, y);
+            ctx.lineTo(x + width - radius, y);
+            ctx.quadraticCurveTo(x + width, y, x + width, y + radius);
+            ctx.lineTo(x + width, y + height - radius);
+            ctx.quadraticCurveTo(x + width, y + height, x + width - radius, y + height);
+            ctx.lineTo(x + radius, y + height);
+            ctx.quadraticCurveTo(x, y + height, x, y + height - radius);
+            ctx.lineTo(x, y + radius);
+            ctx.quadraticCurveTo(x, y, x + radius, y);
+            ctx.closePath();
+            if (fill) ctx.fill();
+            if (stroke) ctx.stroke();
+        }
+
+        // 다른 메뉴 클릭 시 안내 토스트
+        function navAlert(e, menuName) {
+            e.preventDefault();
+            showToast(`'${menuName}' 페이지로 연결되는 네비게이션 메뉴입니다.`);
+        }
+
+        // 토스트 메시지 표시 함수
+        let toastTimeout;
+        function showToast(message) {
+            const toast = document.getElementById('toast');
+            const toastMsg = document.getElementById('toast-message');
+            toastMsg.textContent = message;
+            toast.classList.remove('opacity-0', 'translate-y-2');
+            toast.classList.add('opacity-100', 'translate-y-0');
+
+            clearTimeout(toastTimeout);
+            toastTimeout = setTimeout(() => {
+                toast.classList.remove('opacity-100', 'translate-y-0');
+                toast.classList.add('opacity-0', 'translate-y-2');
+            }, 3000);
+        }
+
+        // 채팅 스크롤 최하단 이동
+        function scrollToBottom() {
+            chatMessages.scrollTop = chatMessages.scrollHeight;
+        }
+
+        // XSS 방지 이스케이프 함수
+        function escapeHtml(text) {
+            const map = {
+                '&': '&amp;',
+                '<': '&lt;',
+                '>': '&gt;',
+                '"': '&quot;',
+                "'": '&#039;'
+            };
+            return text.replace(/[&<>"']/g, m => map[m]);
+        }
+    </script>
+</body>
+</html>
